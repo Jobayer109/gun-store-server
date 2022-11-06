@@ -22,10 +22,16 @@ const dbConnect = async () => {
   const orderCollection = client.db("Gun-store").collection("orders");
   try {
     app.get("/guns", async (req, res) => {
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
       const query = {};
       const cursor = gunCollection.find(query);
-      const guns = await cursor.toArray();
-      res.send(guns);
+      const count = await gunCollection.estimatedDocumentCount(query);
+      const guns = await cursor
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      res.send({ count, guns });
     });
 
     app.get("/guns/:id", async (req, res) => {
